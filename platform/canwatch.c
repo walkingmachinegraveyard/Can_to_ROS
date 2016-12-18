@@ -19,7 +19,9 @@
 #include <linux/can/raw.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#if defined( USE_CURSE )
 #include <curses.h>
+#endif
 #include <endian.h>
 
 #define __packed __attribute__((packed))
@@ -53,15 +55,17 @@ union dataframe {
 static void process_one(struct can_frame *frm)
 {
 	valid_frame_cnt++;
-	union dataframe *dat;
 
-	dat = (union dataframe *)frm->data;
+	//unused//union dataframe *dat;
 
-    bool eff_flag = frm->can_id & CAN_EFF_FLAG;
-    bool rtr_flag = frm->can_id & CAN_RTR_FLAG;
-    bool err_flag = frm->can_id & CAN_ERR_FLAG;
-    
+	//unused//dat = (union dataframe *)frm->data;
+
+    //unused//bool eff_flag = frm->can_id & CAN_EFF_FLAG;
+    //unused//bool rtr_flag = frm->can_id & CAN_RTR_FLAG;
+    //unused//bool err_flag = frm->can_id & CAN_ERR_FLAG;
+
     // ID
+		#if defined( USE_CURSE )
     move(0, 0);
     clrtoeol();
     move(1, 0);
@@ -79,7 +83,7 @@ static void process_one(struct can_frame *frm)
     // Hex data
     move(5, 0);
     clrtoeol();
-    mvprintw(5, 0, " %02X  %02X  %02X  %02X  %02X  %02X  %02X  %02X", 
+    mvprintw(5, 0, " %02X  %02X  %02X  %02X  %02X  %02X  %02X  %02X",
             dat->generic.b7,
             dat->generic.b6,
             dat->generic.b5,
@@ -93,7 +97,7 @@ static void process_one(struct can_frame *frm)
     // Decimal Data
     move(6, 0);
     clrtoeol();
-	mvprintw(6, 0, "%03d %03d %03d %03d %03d %03d %03d %03d", 
+	mvprintw(6, 0, "%03d %03d %03d %03d %03d %03d %03d %03d",
             dat->generic.b7,
             dat->generic.b6,
             dat->generic.b5,
@@ -107,7 +111,7 @@ static void process_one(struct can_frame *frm)
     // Char Data
     move(7, 0);
     clrtoeol();
-	mvprintw(7, 0, "  %c   %c   %c   %c   %c   %c   %c   %c", 
+	mvprintw(7, 0, "  %c   %c   %c   %c   %c   %c   %c   %c",
             (dat->generic.b7 > 32 && dat->generic.b7 < 127) ? dat->generic.b7 : '.',
             (dat->generic.b6 > 32 && dat->generic.b6 < 127) ? dat->generic.b6 : '.',
             (dat->generic.b5 > 32 && dat->generic.b5 < 127) ? dat->generic.b5 : '.',
@@ -118,8 +122,9 @@ static void process_one(struct can_frame *frm)
             (dat->generic.b0 > 32 && dat->generic.b0 < 127) ? dat->generic.b0 : '.'
             );
 
-	
+
     refresh();
+		#endif
 }
 
 static int net_init(char *ifname)
@@ -166,7 +171,7 @@ static void receive_one(uint32_t arb_id)
 	ret = recvfrom(sk, &frm, sizeof(struct can_frame), 0,
 			(struct sockaddr *)&addr, &len);
 	if (ret < 0) {
-		perror("recvfrom");
+		perror("can raw socket read");
 		exit(1);
 	}
 
@@ -185,16 +190,18 @@ int main(int argc, char **argv)
 	}
 
     uint32_t id = (uint32_t)strtol(argv[2], NULL, 16) & 0x7FFFFFFF;
-	
-    initscr();
+		#if defined( USE_CURSE )
+    	initscr();
+		#endif
 
 	net_init(argv[1]);
 
 	for (;;)
 		receive_one(id);
 
-
-	endwin();
+	#if defined( USE_CURSE )
+		endwin();
+	#endif
 
 	return 0;
 }

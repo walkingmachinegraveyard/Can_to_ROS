@@ -20,7 +20,9 @@
 #include <linux/can/raw.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
-#include <curses.h>
+#if defined( USE_CURSE )
+	#include <curses.h>
+#endif
 #include <endian.h>
 
 //#include "lib.h"
@@ -72,8 +74,8 @@ unsigned char asc2nibble(char c) {
 #define CAN_ERR_FLAG 0x20000000U
 
 static int sk;
-static int frame_cnt = 0;
-static int valid_frame_cnt = 0;
+//static int frame_cnt = 0;
+//static int valid_frame_cnt = 0;
 static struct canfd_frame/*can_frame*/ frame;
 
 union dataframe {
@@ -202,7 +204,7 @@ static int net_init(char *ifname)
 		return 1;
 	}
 
-	
+
 	setsockopt(sk, SOL_CAN_RAW, CAN_RAW_FILTER,
 			NULL, 0);
 
@@ -243,11 +245,11 @@ int main(int argc, char **argv)
 	}
 
 //    uint32_t id = (uint32_t)strtol(argv[2], NULL, 16) & 0x7FFFFFFF;
-	
+#if defined( USE_CURSE )
     initscr();
-
+#endif
 	net_init(argv[1]);
-	
+
 	/* parse CAN frame */
 	int required_mtu;
 	required_mtu = parse_canframe(argv[2], &frame);
@@ -256,8 +258,8 @@ int main(int argc, char **argv)
 	/*for (;;)
 		receive_one(id);*/
 
-
+#if defined( USE_CURSE )
 	endwin();
-
+#endif
 	return 0;
 }
