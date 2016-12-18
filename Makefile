@@ -15,6 +15,28 @@ BINDIRBASE     ?= $(APPDIR)/bin
 #	BINDIR ?= $(BINDIRBASE)/$(BOARD)
 DIR_PLATFORM    ?= $(APPDIR)/platform
 
+#Get Only the Internal Structure of SRCDIR Recursively
+#Dont include certain file
+_REMOVE_FROM_STRUCTURE := Kvaser_USBcan_II_HS-HS .git
+REMOVE_FROM_STRUCTURE := $(strip $(foreach src_folder, $(_REMOVE_FROM_STRUCTURE), ! -path "*/$(src_folder)*" ))
+STRUCTURE := $(shell find $(APPDIR) -type d $(REMOVE_FROM_STRUCTURE))
+#Get All Files inside the STRUCTURE Variable
+SRCDIR = $(STRUCTURE)
+OBJDIR = obj
+CODEFILES := $(addsuffix /*,$(STRUCTURE))
+CODEFILES := $(wildcard $(CODEFILES))
+#Filter Out Only Specific Files
+SRCFILES := $(filter %.c,$(CODEFILES))
+HDRFILES := $(filter %.h,$(CODEFILES))
+OBJFILES := $(subst $(SRCDIR),$(OBJDIR),$(SRCFILES:%.c=%.o))
+#OBJFILES := $(strip $(foreach src, $(OBJFILES), $(abspath $(patsubst $(APPDIR)%, $(OBJDIR)%, $(src)))))
+# Filter Out Function main for Libraries
+LIBDEPS := $(filter-out $(OBJDIR)/main.o,$(OBJFILES))
+
+
+#TODO:Le metre dans un choix fait par un define exterieur
+DIR_NATIVE ?= $(APPDIR)/drivers/native
+
 #what we use now for the projetct
 #_DEPS = lowLevel_CAN_definition.h
 #_DEPS += can_Interface.h
@@ -27,7 +49,7 @@ INCLUDES_DIRS += $(PROJECTBASE)/drivers/include $(PROJECTBASE)/include
 #all:
 
 __DIRECTORY_VARIABLES := PROJECTBASE APPDIR BINDIRBASE
-__ALL_PROJECT_DIRECTORY := $(PROJECTBASE) $(APPDIR) $(BINDIRBASE) $(DIR_PLATFORM)
+__ALL_PROJECT_DIRECTORY := $(PROJECTBASE) $(APPDIR) $(BINDIRBASE) $(DIR_PLATFORM) $(DIR_NATIVE)
 #__DIRECTORY_VARIABLES := RIOTBASE CCACHE_BASEDIR RIOTCPU RIOTBOARD RIOTPKG GITCACHE RIOTPROJECT APPDIR BINDIRBASE BINDIR
 
 # Make all paths absolute.
@@ -58,7 +80,7 @@ INCLUDES += $(foreach dir, $(INCLUDES_DIRS),-I$(wildcard $(dir)))
 #INCLUDES += -I$(RIOTBOARD)/$(BOARD)/include
 
 #only as a test
-CC=gcc
+CC=g++
 CFLAGS=$(INCLUDES)
 
 ODIR=$(CURDIR)/obj
@@ -68,13 +90,12 @@ ODIR=$(CURDIR)/obj
 
 #_DEPS = hellomake.h
 #_DEPS =
-DEPS = $(patsubst %,$(INCLUDES_DIRS)/%,$(_DEPS))
-
-
-#DIRS_LTO_TEST := $(foreach dir, $(__DIRECTORY_VARIABLES),$(filter-out $(MY_TEST), $(wildcard $(dir)/*.c)))
+_DEPS = native_can.h
+DEPS := $(strip $(foreach incl_file, $(_DEPS), \
+																					$(shell find $(APPDIR) -type f -name $(incl_file))))
 
 #_OBJ = hellomake.o hellofunc.o
-_OBJ =
+_OBJ = native_can.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 #QUIET ?= 1
@@ -88,6 +109,8 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 #file source used for cansend
 CFLAGS += -Wall -g
+#used to enable the use of enum in class, like in can_Interface
+CFLAGS += -std=c++0x
 #CFLAGS += `ncurses5-config --cflags`
 #LDFLAGS += `ncurses5-config --libs`
 
@@ -107,9 +130,9 @@ DIRS_CANWATCH:= $(strip $(foreach src_file, $(SRC_CANWATCH), \
 #_OBJ_CANREAD = $(patsubst %.c,%.o,$(SRC_CANREAD))
 #OBJ_CANREAD = $(patsubst %,$(ODIR)/%,$(_OBJ_CANREAD))
 
-$(ODIR)/%.o: %.c $(DEPS)
-		@echo "in OBJ"
-		$(CC) -c -o $@ $< $(CFLAGS)
+#$(ODIR)/%.o: %.c $(DEPS)
+#		@echo "in OBJ"
+#		$(CC) -c -o $@ $< $(CFLAGS)
 
 cansend:
 		gcc $(DIRS_CANSEND)  -o $@ $^ $(CFLAGS) $(LIBS)
@@ -117,10 +140,22 @@ cansend:
 canwatch:
 		gcc $(DIRS_CANWATCH)  -o $@ $^ $(CFLAGS) $(LIBS)
 
+native_test: $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS)
+
+#Now it is Time to create the Rules
+compile: $(OBJFILES)
+
+$(OBJDIR)/%.o: $(addprefix $(SRCDIR)/,%.c %.h)
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+#build:
+
+
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~
+	rm -f $(OBJFILES)
 
 info-build:
 	@echo "==== Info globale ===="
@@ -129,7 +164,11 @@ info-build:
 	@echo 'LDFLAGS: $(LDFLAGS)'
 	@echo 'INCLUDES_DIRS: $(INCLUDES_DIRS)'
 	@echo 'LIBS: $(LIBS)'
+	@echo 'DEPS: $(DEPS)'
+	@echo 'OBJFILES: $(OBJFILES)'
 	@echo "======================"
+
+
 
 info-build-cansend: info-build
 	 @echo "==== Info cansend ===="

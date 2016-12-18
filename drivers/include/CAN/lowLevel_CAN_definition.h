@@ -1,6 +1,9 @@
 #ifndef LOWLEVEL_CAN_DEFINITION_H
 #define LOWLEVEL_CAN_DEFINITION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* add guard for the case that no CAN device is defined */
 #if CAN_NUMOF
@@ -20,6 +23,13 @@ typedef enum {
 #endif
 } can_t;
 
+#else
+#define CAN_NUMOF 0
 #endif /* CAN_NUMOF */
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* LOWLEVEL_CAN_DEFINITION_H */
