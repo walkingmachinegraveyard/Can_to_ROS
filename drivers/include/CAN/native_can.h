@@ -38,6 +38,29 @@ class can_driver : public canInterface {
      */
     virtual void setMode(can_t canID, canInterface::mode_t mode);
     #endif
+    /**
+     * @note Unused for the moment
+     * @brief Get mutually exclusive access to the given CAN bus
+     *
+     * In case the CAN device is busy, this function will block until the bus is free again.
+     *
+     * @param[in] dev       CAN device to access
+     *
+     * @return              0 on success
+     * @return              -1 on error
+     */
+    virtual int can_acquire(can_t dev){return 0;};
+
+    /**
+     * @note Unused for the moment
+     * @brief Release the given CAN device to be used by others
+     *
+     * @param[in] dev       CAN device to release
+     *
+     * @return              0 on success
+     * @return              -1 on error
+     */
+    virtual int can_release(can_t dev){return 0;};
 
   public:
     can_driver(can_event_cb_t event_callback);

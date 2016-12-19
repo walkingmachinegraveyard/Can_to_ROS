@@ -28,8 +28,12 @@ CODEFILES := $(wildcard $(CODEFILES))
 #Filter Out Only Specific Files
 SRCFILES := $(filter %.c,$(CODEFILES))
 HDRFILES := $(filter %.h,$(CODEFILES))
-OBJFILES := $(subst $(SRCDIR),$(OBJDIR),$(SRCFILES:%.c=%.o))
-#OBJFILES := $(strip $(foreach src, $(OBJFILES), $(abspath $(patsubst $(APPDIR)%, $(OBJDIR)%, $(src)))))
+
+
+_OBJFILES := $(subst $(SRCDIR),$(OBJDIR),$(SRCFILES:%.c=%.o))
+#a amiliorer
+OBJFILES := $(strip  $(filter-out %canwatch.o %cansend.o, $(_OBJFILES)))
+
 # Filter Out Function main for Libraries
 LIBDEPS := $(filter-out $(OBJDIR)/main.o,$(OBJFILES))
 
@@ -108,7 +112,8 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 #endif
 
 #file source used for cansend
-CFLAGS += -Wall -g
+#CFLAGS += -Wall
+#CFLAGS += -g
 #used to enable the use of enum in class, like in can_Interface
 CFLAGS += -std=c++0x
 #CFLAGS += `ncurses5-config --cflags`
@@ -134,17 +139,20 @@ DIRS_CANWATCH:= $(strip $(foreach src_file, $(SRC_CANWATCH), \
 #		@echo "in OBJ"
 #		$(CC) -c -o $@ $< $(CFLAGS)
 
-cansend:
-		gcc $(DIRS_CANSEND)  -o $@ $^ $(CFLAGS) $(LIBS)
+#canwatch:
+		#gcc $(DIRS_CANWATCH)  -o $@ $^ $(CFLAGS) $(LIBS)
 
-canwatch:
-		gcc $(DIRS_CANWATCH)  -o $@ $^ $(CFLAGS) $(LIBS)
+cansend: compile
+		$(CC) $(CFLAGS) $(OBJFILES) /home/debian/workspace/Can_to_ROS/platform/cansend.o -o $@  $(LDFLAGS) $(LIBS)
+
+canwatch: compile
+		$(CC) $(CFLAGS) $(OBJFILES) /home/debian/workspace/Can_to_ROS/platform/canwatch.o -o $@  $(LDFLAGS) $(LIBS)
 
 native_test: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
 #Now it is Time to create the Rules
-compile: $(OBJFILES)
+compile: $(_OBJFILES)
 
 $(OBJDIR)/%.o: $(addprefix $(SRCDIR)/,%.c %.h)
 	$(CC) -c $< -o $@ $(CFLAGS)
@@ -155,7 +163,8 @@ $(OBJDIR)/%.o: $(addprefix $(SRCDIR)/,%.c %.h)
 .PHONY: clean
 
 clean:
-	rm -f $(OBJFILES)
+	rm -f $(_OBJFILES)
+	rm -f canwatch
 
 info-build:
 	@echo "==== Info globale ===="

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define USE_DEBUG
+
 
 
 #include "CAN/native_can.h"
@@ -29,7 +31,7 @@ void can_driver::run(void)
     }
 
     frame_cnt[i]++;
-    can_t cantindex;
+    can_t cantindex=(can_t)i;
     m_event_callback(&cantindex,can_event_t::CAN_EVENT_RX_COMPLETE,(uint8_t*)&frm,len);
   }
 }
@@ -43,7 +45,7 @@ can_driver::can_driver(can_event_cb_t event_callback) : canInterface(event_callb
     m_current_mode[i]=mode_t::receive;
     #endif
     frame_cnt[i]=0;
-    valid_frame_cnt[i]=0;
+
   }
 }
 
@@ -146,6 +148,18 @@ uint8_t can_driver::send_message(can_t canID, can_frame *message)
     //setMode(canID, modde_t::transmit);
     #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     setMode(canID,mode_t::transmit);
+    #endif
+
+    #if defined(USE_DEBUG)
+    printf("send_message:\n" );
+    printf("can_id: %04x\n",message->can_id );
+    printf("can_dlc: %02x\n",message->can_dlc );
+    printf("data:\n" );
+    for(uint8_t i=0; i< message->can_dlc; i++)
+    {
+      printf("[ %02X ] ",message->data[i]);
+    }
+
     #endif
 
     if (write(m_socket[canID], &message, sizeof(struct can_frame)) != sizeof(struct can_frame))
