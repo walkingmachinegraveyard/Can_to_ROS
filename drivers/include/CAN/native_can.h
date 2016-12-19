@@ -12,6 +12,14 @@ extern "C" {
 #include "CAN/lowLevel_CAN_definition.h"
 #include "can_Interface.h"
 
+//use by can
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+
 //typedef can::mode_t mode_t
 
 class can_driver : public canInterface {
@@ -28,7 +36,7 @@ class can_driver : public canInterface {
      * @param[in] canID Id identifiant le bus
      * @param[in] mode Letat dans lequel il doit etre
      */
-    virtual void setMode(can_t canID, mode_t mode);
+    virtual void setMode(can_t canID, canInterface::mode_t mode);
     #endif
 
   public:

@@ -14,16 +14,16 @@ extern "C" {
 namespace can {
 #endif
 
-
+	typedef enum  {
+        CAN_EVENT_RX_COMPLETE,
+       } can_event_t;
 
   class canInterface
   {
   public:
     //TODO: definir les term de can_event_t
     // se fier a https://github.com/RIOT-OS/RIOT/blob/master/drivers/include/net/netdev2.h
-    typedef enum  {
-        CAN_EVENT_RX_COMPLETE,
-       } can_event_t;
+    
 
     #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
       enum class mode_t : uint8_t {receive, transmit};
@@ -50,14 +50,14 @@ namespace can {
     /*#else
     mode_t m_current_mode[];
     #endif*/
-
+#if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
   /**
    * @breif Permet de modifier letat dun bus can
    * @param[in] canID Id identifiant le bus
    * @param[in] mode Letat dans lequel il doit etre
    */
   virtual void setMode(can_t canID, mode_t mode)=0;
-
+#endif
   /**
    * @brief Get mutually exclusive access to the given CAN bus
    *

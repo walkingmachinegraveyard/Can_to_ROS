@@ -7,11 +7,12 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-
 #include <stdio.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <stdlib.h>
+
+#if defined( USE_OLD_CODE )
+#include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -23,9 +24,13 @@
 #include <curses.h>
 #endif
 #include <endian.h>
+#endif
+
+#include "CAN/native_can.h"
 
 #define __packed __attribute__((packed))
 
+#if defined( USE_OLD_CODE )
 // SocketCAN flags
 // Upper 3 bits of ID integer in CAN frame are used for these flags
 #define CAN_EFF_FLAG 0x80000000U
@@ -50,8 +55,24 @@ union dataframe {
     } generic;
 
 };
+#endif
 
+uint32_t arb_id=0;
+void process_one(struct can_frame *frm);
 
+static void event_cb(can_t *dev, can_event_t event, uint8_t *message, uint16_t lenght)
+{
+ printf("receive event from can%i",*dev);
+ can_frame *frameptr=(can_frame *)message;
+ switch(event)
+ {
+	case CAN_EVENT_RX_COMPLETE:
+		if ( (frameptr->can_id & 0x1FFFFFFF) == arb_id) 
+			process_one((can_frame *)message);
+		break;
+ }
+}
+#if defined( USE_OLD_CODE )
 static void process_one(struct can_frame *frm)
 {
 	valid_frame_cnt++;
@@ -65,7 +86,7 @@ static void process_one(struct can_frame *frm)
     //unused//bool err_flag = frm->can_id & CAN_ERR_FLAG;
 
     // ID
-		#if defined( USE_CURSE )
+	#if defined( USE_CURSE )
     move(0, 0);
     clrtoeol();
     move(1, 0);
@@ -126,7 +147,9 @@ static void process_one(struct can_frame *frm)
     refresh();
 		#endif
 }
+#endif
 
+#if defined( USE_OLD_CODE )
 static int net_init(char *ifname)
 {
 	int recv_own_msgs;
@@ -181,6 +204,9 @@ static void receive_one(uint32_t arb_id)
 	    process_one(&frm);
     }
 }
+#endif
+
+
 
 int main(int argc, char **argv)
 {
@@ -189,15 +215,20 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-    uint32_t id = (uint32_t)strtol(argv[2], NULL, 16) & 0x7FFFFFFF;
+    arb_id = (uint32_t)strtol(argv[2], NULL, 16) & 0x7FFFFFFF;
 		#if defined( USE_CURSE )
     	initscr();
 		#endif
-
-	net_init(argv[1]);
+	can_driver m_can_driver(event_cb);
 
 	for (;;)
-		receive_one(id);
+		m_can_driver.run();
+	#if defined( USE_OLD_CODE )
+	net_init(argv[1]);
+	
+	for (;;)
+		receive_one(arb_id);
+	#endif
 
 	#if defined( USE_CURSE )
 		endwin();

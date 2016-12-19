@@ -5,15 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-//use by can
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
 
-#include "native_can.h"
+
+#include "CAN/native_can.h"
 
 //unshure//#include <endian.h>
 
