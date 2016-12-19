@@ -142,7 +142,7 @@ void can_driver::setMode(can_t canID, mode_t mode)
 uint8_t can_driver::send_message(can_t canID, can_frame *message)
 {
   uint8_t result= 0;
-
+  uint8_t nbyte=0;
   if (!(message == 0) && !(CAN_NUMOF == 0))
   {
     //setMode(canID, modde_t::transmit);
@@ -161,12 +161,13 @@ uint8_t can_driver::send_message(can_t canID, can_frame *message)
     }
 
     #endif
-
-    if (write(m_socket[canID], &message, sizeof(struct can_frame)) != sizeof(struct can_frame))
+    nbyte= write(m_socket[canID], message, sizeof(struct can_frame));
+    if (nbyte == 0)
     {
   		perror("write");
   		return 1;
     }
+    printf("envoyer: %i\n", nbyte );
 
     #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     setMode(canID,mode_t::receive);

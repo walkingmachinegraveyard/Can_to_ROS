@@ -143,10 +143,10 @@ DIRS_CANWATCH:= $(strip $(foreach src_file, $(SRC_CANWATCH), \
 		#gcc $(DIRS_CANWATCH)  -o $@ $^ $(CFLAGS) $(LIBS)
 
 cansend: compile
-		$(CC) $(CFLAGS) $(OBJFILES) /home/debian/workspace/Can_to_ROS/platform/cansend.o -o $@  $(LDFLAGS) $(LIBS)
+		$(CC) $(CFLAGS) $(OBJFILES) platform/cansend.o -o $@  $(LDFLAGS) $(LIBS)
 
 canwatch: compile
-		$(CC) $(CFLAGS) $(OBJFILES) /home/debian/workspace/Can_to_ROS/platform/canwatch.o -o $@  $(LDFLAGS) $(LIBS)
+		$(CC) $(CFLAGS) $(OBJFILES) platform/canwatch.o -o $@  $(LDFLAGS) $(LIBS)
 
 native_test: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
