@@ -17,12 +17,39 @@
 
 //unshure//#include <endian.h>
 
-can_driver::can_driver() : canInterface()
+void can_driver::run(void)
+{
+  //TODO:change how we process each can
+  for(uint8_t i= 0; i!=CAN_NUMOF; i++)
+  {
+    struct can_frame frm;
+    struct sockaddr_can addr;
+    int ret;
+    socklen_t len;
+
+    ret = recvfrom(m_socket[i], &frm, sizeof(struct can_frame), 0,
+        (struct sockaddr *)&addr, &len);
+    if (ret < 0) {
+      perror("can raw socket read");
+      exit(1);
+    }
+
+    frame_cnt[i]++;
+    can_t cantindex;
+    m_event_callback(&cantindex,can_event_t::CAN_EVENT_RX_COMPLETE,(uint8_t*)&frm,len);
+  }
+}
+
+can_driver::can_driver(can_event_cb_t event_callback) : canInterface(event_callback)
 {
   for(uint8_t i= 0; i!=CAN_NUMOF; i++)
   {
     m_socket[i]=0;
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     m_current_mode[i]=mode_t::receive;
+    #endif
+    frame_cnt[i]=0;
+    valid_frame_cnt[i]=0;
   }
 }
 
@@ -75,6 +102,7 @@ uint8_t  can_driver::init(bool recv_own_msgs)
   return 0;
 }
 
+#if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
 uint8_t can_driver::set_in_receive_mode(can_t canID)
 {
   uint8_t result =0;
@@ -114,7 +142,7 @@ void can_driver::setMode(can_t canID, mode_t mode)
     }
   }
 }
-
+#endif
 uint8_t can_driver::send_message(can_t canID, can_frame *message)
 {
   uint8_t result= 0;
@@ -122,8 +150,19 @@ uint8_t can_driver::send_message(can_t canID, can_frame *message)
   if (!(message == 0) && !(CAN_NUMOF == 0))
   {
     //setMode(canID, modde_t::transmit);
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     setMode(canID,mode_t::transmit);
+    #endif
 
+    if (write(m_socket[canID], &message, sizeof(struct can_frame)) != sizeof(struct can_frame))
+    {
+  		perror("write");
+  		return 1;
+    }
+
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
+    setMode(canID,mode_t::receive);
+    #endif
   }
   return result;
 }

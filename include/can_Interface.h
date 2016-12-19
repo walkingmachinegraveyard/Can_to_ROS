@@ -15,19 +15,37 @@ namespace can {
 #endif
 
 
+
   class canInterface
   {
   public:
-    enum class mode_t : uint8_t {receive, transmit};
+    //TODO: definir les term de can_event_t
+    // se fier a https://github.com/RIOT-OS/RIOT/blob/master/drivers/include/net/netdev2.h
+    typedef enum  {
+        CAN_EVENT_RX_COMPLETE,
+       } can_event_t;
+
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
+      enum class mode_t : uint8_t {receive, transmit};
+    #endif
+    /**
+     * @brief   Event callback for signaling event to upper layers
+     *
+     * @param[in] type          type of the event
+     */
+    typedef void (*can_event_cb_t)(can_t *dev, can_event_t event, uint8_t *message, uint16_t lenght);
 
   private:
 
 
   protected:
-
+    int frame_cnt[CAN_NUMOF];
+    int valid_frame_cnt[CAN_NUMOF];
 
     //#if defined(CAN_NUMOF)
-    mode_t m_current_mode[CAN_NUMOF];
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
+      mode_t m_current_mode[CAN_NUMOF];
+    #endif
     uint16_t m_socket[CAN_NUMOF];
     /*#else
     mode_t m_current_mode[];
@@ -62,10 +80,12 @@ namespace can {
    */
   virtual int can_release(can_t dev);
 
+  can_event_cb_t m_event_callback;
 
   public:
-    canInterface();
+    canInterface(can_event_cb_t event_callback){m_event_callback = event_callback;};
     ~canInterface();
+    virtual void run()=0;
 
 
    /**

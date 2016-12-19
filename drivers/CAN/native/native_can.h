@@ -16,21 +16,26 @@ extern "C" {
 
 class can_driver : public canInterface {
   private:
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     uint8_t set_in_receive_mode(can_t canID);
     uint8_t set_in_transmit_mode(can_t canID);
-  protected:
+    #endif
 
+  protected:
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
     /**
      * @breif Permet de modifier letat dun bus can
      * @param[in] canID Id identifiant le bus
      * @param[in] mode Letat dans lequel il doit etre
      */
     virtual void setMode(can_t canID, mode_t mode);
+    #endif
 
   public:
-    can_driver();
+    can_driver(can_event_cb_t event_callback);
     ~can_driver();
 
+    virtual void run(void);
     /**
      * @brief Initialise le CAN
      * @param[in] recv_own_msgs Bool permetant de decider si l'on veux un feedback
@@ -56,6 +61,13 @@ class can_driver : public canInterface {
      * @return              0 on error
      */
     uint8_t send_message(can_t canID, can_frame *message);
+
+    /**
+     * @breif Fonction utiliser pour recevoir une fonction
+     * @param[in] frm Frame contenant le format du message CAN
+     * @param[out] buffer Buffer de taille /a CAN_MAX_DLEN pour aceuillire le message.
+     */
+    void process_one(struct can_frame *frm, uint8_t* buffer);
 
 };
 
