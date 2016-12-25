@@ -42,7 +42,7 @@
 
 #define CANFD_MAX_DLC 15
 #define CANFD_MAX_DLEN 64
-
+#define USE_CANFD_FRAME //define used for knowing we use parse_frame
 	struct canfd_frame {
          canid_t can_id;  /* 32 bit CAN_ID + EFF/RTR/ERR flags */
          __u8    len;     /* frame payload length in byte */
@@ -374,6 +374,7 @@ int main(int argc, char **argv)
 		for (;;)
 			receive_one(arb_id);
 	#else
+		#if defined(USE_CANFD_FRAME)
 		canfd_frame frame;
 
 		if( parse_canframe(argv[1], &frame))
@@ -406,6 +407,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "123##1 / 213##311\n     1F334455#1122334455667788 / 123#R ");
 			fprintf(stderr, "for remote transmission request.\n\n");
 		}
+		#endif
 	#endif
 
 	#if defined( USE_CURSE )
