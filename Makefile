@@ -32,7 +32,7 @@ HDRFILES := $(filter %.h,$(CODEFILES))
 
 _OBJFILES := $(subst $(SRCDIR),$(OBJDIR),$(SRCFILES:%.c=%.o))
 #a amiliorer
-OBJFILES := $(strip  $(filter-out %canwatch.o %cansend.o, $(_OBJFILES)))
+OBJFILES := $(strip  $(filter-out %canwatch.o %cansend.o %can_to_register.o , $(_OBJFILES)))
 
 # Filter Out Function main for Libraries
 LIBDEPS := $(filter-out $(OBJDIR)/main.o,$(OBJFILES))
@@ -147,6 +147,9 @@ cansend: compile
 
 canwatch: compile
 		$(CC) $(CFLAGS) $(OBJFILES) platform/canwatch.o -o $@  $(LDFLAGS) $(LIBS)
+
+canros: compile
+		$(CC) $(CFlAGS) $(OBJFILES) platform/can_to_register.o -o $@ $(LDFLAGS) $(LIBS)
 
 native_test: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)

@@ -8,15 +8,6 @@ can_to_regiser-<
                 \interpreteur_CAN//used to procces the data from the can
 */
 
-/*
- * Original work copyright 2013 Fabio Baltieri <fabio.baltieri@gmail.com>
- * Modified work copyright 2015 Dan Kouba
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -188,6 +179,7 @@ static void _event_cb(can_t *dev, can_event_t event, uint8_t *message, uint16_t 
 
 void process_one(struct can_frame *frm)
 {
+			// TODO: ici on met le moment ou le data est enregistrer dans le buffer
 			printf("lenght: %i\n",frm->can_dlc );
 			for(uint8_t i=0; i< frm->can_dlc; i++)
 			{
@@ -215,6 +207,8 @@ int main(int argc, char **argv)
 
 			if( parse_canframe(argv[1], &frame))
 			{
+				//TODO: ici on met le moment ou on doit lire si on doit envoyer un message
+
 					//To change Because it's transforming canfd into canframe
 					// Because I'v not found other way
 					can_frame localframe;
@@ -229,7 +223,6 @@ int main(int argc, char **argv)
 						localframe.data[i]	=	frame.data[i];
 					}
 				m_can_driver->send_message(CAN_0,(can_frame*)&frame);
-
 			}
 			else
 			{

@@ -1,8 +1,6 @@
 #ifndef H_REGISTER_CAN
 #define H_REGISTER_CAN
 
-
-
 #include <stdint.h>
 #include <iostream>
 #include <algorithm>
@@ -11,9 +9,10 @@
 
 #define MAX_CLIEN_CAN 10
 #define MAX_MESSAGE_CAN 20
-/* Id for CAN Aerospace message data type. */
-/* Service code, see CAN Aerospace specification. */
-/*   	Message code, see CAN WM specification. */
+
+/* Id for CAN message data type. */
+/* Service code, see CAN WM specification. */
+/* Message code, see CAN WM specification. */
 /* the lenght of the data */
 /* the message gived */
 struct can_message_t {
@@ -34,15 +33,20 @@ struct can_data_t {
 
 class register_can {
 private:
-  std::list<can_data_t> m_list_of_clien;
+	std::list<can_data_t> m_list_of_clien;
 
 public:
-
+	//add
+	//remove
+	//find
+	//get_list_id
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
 #ifdef __cplusplus
 }
 #endif
