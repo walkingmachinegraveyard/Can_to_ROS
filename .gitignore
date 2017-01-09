@@ -1,0 +1,6 @@
+*.gch
+*.o
+*.*~
+cansend
+canwatch
+canros
