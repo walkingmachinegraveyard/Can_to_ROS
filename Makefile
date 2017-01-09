@@ -48,7 +48,7 @@ DIR_NATIVE ?= $(APPDIR)/drivers/native
 
 
 # Add  all include directories
-INCLUDES_DIRS += $(PROJECTBASE)/drivers/include $(PROJECTBASE)/include
+INCLUDES_DIRS += $(PROJECTBASE)/drivers/include $(PROJECTBASE)/include $(PROJECTBASE)/sys
 
 #all:
 

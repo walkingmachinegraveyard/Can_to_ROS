@@ -1,5 +1,5 @@
 
-#include "register_CAN.h"
+
 
 
 /*
@@ -36,6 +36,11 @@ can_to_regiser-<
 #include "can_Interface.h"
 #define __packed __attribute__((packed))
 
+#include "global_pointer.h"
+#include "Registry_CAN/register_CAN.h"
+#include "Interpreter_Registry/interpreteur_CAN.h"
+register_can *registerMessage;
+can_driver * m_can_driver;
 
 #if !defined( CAN_MTU )
 	#define CAN_MAX_DLC 8
@@ -157,7 +162,7 @@ can_to_regiser-<
 	}
 #endif  /* !defined( CAN_MTU ) */
 
-can_driver * m_can_driver;
+
 
 uint32_t arb_id=0;
 void process_one(struct can_frame *frm);
@@ -179,14 +184,29 @@ static void _event_cb(can_t *dev, can_event_t event, uint8_t *message, uint16_t 
 
 void process_one(struct can_frame *frm)
 {
-			// TODO: ici on met le moment ou le data est enregistrer dans le buffer
-			printf("lenght: %i\n",frm->can_dlc );
-			for(uint8_t i=0; i< frm->can_dlc; i++)
-			{
-				printf("[ %02X ] ",frm->data[i]);
-			}
-			printf("\nrecus\n" );
+    
+    #if defined(DEBUG_RECEIVE)
+    printf("lenght: %i\n",frm->can_dlc );
+    #endif
+
+    // TODO: ici on met le moment ou le data est enregistrer dans le buffer
+    // TODO: on doit faire une fontion qui get le id du message
+    
+    uint32_t id_client_read = get_canFrame_id(frm);
+    struct can_message_t formated_message = parse_receive_message(frm);
+
+    registerMessage->add_message(id_client_read,formated_message);
+
+    #if defined(DEBUG_RECEIVE)
+    for(uint8_t i=0; i< frm->can_dlc; i++)
+    {
+        printf("[ %02X ] ",frm->data[i]);
+    }
+    printf("\nrecus\n" );
+    #endif
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -196,12 +216,31 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-		//creation du driver can
+	//creation du driver can
+    #if 0
+	m_can_driver = new can_driver(&_event_cb);
+	m_can_driver->init(false);
+    #endif
+    //creation du registre can        
+    registerMessage = new register_can();
 
-		m_can_driver = new can_driver(&_event_cb);
-		m_can_driver->init(false);
+    //only as a test
+    registerMessage->add_client(1);
+    registerMessage->add_client(2);
+    registerMessage->add_client(3);
+    registerMessage->add_client(4);
+    registerMessage->add_client(5);
+    registerMessage->add_client(6);
+    registerMessage->init();
+    registerMessage->add_client(7);
+    registerMessage->add_client(8);
+    registerMessage->add_client(9);
+    registerMessage->add_client(10);
+    registerMessage->add_client(11);
+    registerMessage->add_client(12);
 
-
+    registerMessage->print_list_clientId();
+    #if 0
 		#if defined(USE_CANFD_FRAME)
 			canfd_frame frame;
 
@@ -239,6 +278,10 @@ int main(int argc, char **argv)
 				fprintf(stderr, "for remote transmission request.\n\n");
 			}
 		#endif /* USE_CANFD_FRAME */
+    #endif
+    while(1)//TODO le reste du code.
+    {
+    }
 
 	return 0;
 }
