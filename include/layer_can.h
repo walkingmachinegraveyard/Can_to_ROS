@@ -1,3 +1,5 @@
+#ifndef LAYER_CAN_H_
+#define LAYER_CAN_H_
 /**
  * Fonction pour savoir combien de user il y a sur le can
  * @return la valeur numerique 0 etant aucun
@@ -54,3 +56,5 @@ uint8_t   send_message_to(uint16_t userId, uint16_t threadId,uint8_t payloadLeng
 /**
   * @todo Peut etre faire une fonction attatch pour binder une fonction qui serait appler a chaque nouveau message de la part dun user, thread, ou general
   */
+
+#endif /* LAYER_CAN_H_ */
