@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,18 +27,24 @@
 
 #include "CAN/lowLevel_CAN_definition.h"
 
-
 #include "CAN/native_can.h"
+
+
 #include "can_Interface.h"
 #define __packed __attribute__((packed))
 
 #include "ROS_Layer/can_dispatcher.h"
 
+//pointeur globale du singleton
+// Allocating and initializing GlobalClass's
+// static data member.  The pointer is being
+// allocated - not the object inself.
+static can_dispatcher *global_ptr = 0 ;
 
 
 
-register_can *registerMessage;
-can_driver * m_can_driver;
+//register_can *registerMessage;
+
 
 #if !defined( CAN_MTU )
 	#define CAN_MAX_DLC 8
@@ -159,14 +165,14 @@ can_driver * m_can_driver;
 		return ret;
 	}
 #endif  /* !defined( CAN_MTU ) */
-#include <stdint.h>
 
 
 
-uint32_t arb_id=0;
+
+
 //void process_one(struct can_frame *frm);
 
-/*static*/ void can_dispatcher::_event_cb(can_t *dev, can_event_t event, uint8_t *message , uint16_t lenght)
+static void /*can_dispatcher::*/_event_cb(can_t *dev, can_event_t event, uint8_t *message , uint16_t lenght)
 {
 
  printf("receive event from can%i\n", *dev);
@@ -174,14 +180,14 @@ uint32_t arb_id=0;
  switch(event)
  {
 	case CAN_EVENT_RX_COMPLETE:
-		if ( (frameptr->can_id & 0x1FFFFFFF) == arb_id)
+		if ( (frameptr->can_id & 0x1FFFFFFF) == global_ptr->arb_id)
 			process_one(/*(struct can_frame *)message*/frameptr);
 		break;
  }
 }
 
 
-void can_dispatcher::process_one(struct can_frame *frm)
+ void /*can_dispatcher::*/process_one(struct can_frame *frm)
 {
     
     #if defined(DEBUG_RECEIVE)
@@ -194,7 +200,7 @@ void can_dispatcher::process_one(struct can_frame *frm)
     uint32_t id_client_read = get_canFrame_id(frm);
     struct can_message_t formated_message = parse_receive_message(frm);
 
-    registerMessage->add_message(id_client_read,formated_message);
+    /*registerMessage*/global_ptr->add_message(id_client_read,formated_message);
 
     #if defined(DEBUG_RECEIVE)
     for(uint8_t i=0; i< frm->can_dlc; i++)
@@ -211,18 +217,59 @@ void can_dispatcher::process_one(struct can_frame *frm)
 }*/
 can_dispatcher::can_dispatcher(void) //: can_dispatcher(&_event_cb)
 {
-
+ global_ptr = this;
+	arb_id=0;
 //creation du driver can
     
     m_can_driver = new can_driver(&_event_cb);
     m_can_driver->init(false);
     
     //creation du registre can        
-    registerMessage = new register_can();
-    //registerMessage->init();
+    //registerMessage = new register_can();
+    /*registerMessage*/this->init();
 }
 
 void can_dispatcher::run (void)
 {
 	m_can_driver->run();
+}
+
+bool can_dispatcher::resend(uint32_t nodeId)
+{
+    bool result=false;
+
+    can_data_t * ptr_to_client = get_client(nodeId);
+    
+    if(ptr_to_client != 0 )
+    {
+        can_message_t* message_found = 0;
+        message_found = get_message(nodeId,ptr_to_client->counter_message-1);
+        if( message_found != 0)
+        {
+         //message trouver
+         can_frame payload;
+
+         payload = parse_send_message(message_found);
+
+         m_can_driver->send_message(CAN_0,&payload);
+        }
+        result=true;
+    }
+    return result;
+}
+bool can_dispatcher::update (uint32_t nodeId, struct can_message_t message)
+{
+    bool result=false;
+
+    can_data_t * ptr_to_client = get_client(nodeId);
+    
+    if(ptr_to_client != 0 )
+    {
+        result= add_message(nodeId, message);
+        if(result)
+        {
+         resend(nodeId);
+        }
+    }
+    return result;
 }

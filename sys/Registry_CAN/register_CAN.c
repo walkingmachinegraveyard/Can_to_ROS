@@ -90,45 +90,7 @@ bool register_can::add_message(uint32_t nodeId,struct can_message_t message)
     return result;
 }
 
-bool register_can::resend(uint32_t nodeId)
-{
-    bool result=false;
 
-    can_data_t * ptr_to_client = get_client(nodeId);
-    
-    if(ptr_to_client != 0 )
-    {
-        can_message_t* message_found = 0;
-        message_found = get_message(nodeId,ptr_to_client->counter_message-1);
-        if( message_found != 0)
-        {
-         //message trouver
-         can_frame payload;
-
-         payload = parse_send_message(message_found);
-
-         m_can_driver->send_message(CAN_0,&payload);
-        }
-        result=true;
-    }
-    return result;
-}
-bool register_can::update (uint32_t nodeId, struct can_message_t message)
-{
-    bool result=false;
-
-    can_data_t * ptr_to_client = get_client(nodeId);
-    
-    if(ptr_to_client != 0 )
-    {
-        result= add_message(nodeId, message);
-        if(result)
-        {
-         resend(nodeId);
-        }
-    }
-    return result;
-}
 
 
 bool register_can::is_client_exist(uint32_t nodeId)
