@@ -1,7 +1,10 @@
 #include <stdio.h>
-#include <stdint.h>
+
 #include <stdlib.h>
 #include <string.h>
+
+
+#define CANUSE 0
 //#if defined( USE_OLD_CODE )
 	#include <unistd.h>
 
@@ -16,16 +19,24 @@
 //#endif
 
 
-#include <linux/can.h>
 
-#define CANUSE 0
-#include "CAN/native_can.h"
-#include "can_Interface.h"
-#define __packed __attribute__((packed))
 
 #include "global_pointer.h"
 #include "Registry_CAN/register_CAN.h"
 #include "Interpreter_Registry/interpreteur_CAN.h"
+
+#include "CAN/lowLevel_CAN_definition.h"
+
+
+#include "CAN/native_can.h"
+#include "can_Interface.h"
+#define __packed __attribute__((packed))
+
+#include "ROS_Layer/can_dispatcher.h"
+
+
+
+
 register_can *registerMessage;
 can_driver * m_can_driver;
 
@@ -148,14 +159,14 @@ can_driver * m_can_driver;
 		return ret;
 	}
 #endif  /* !defined( CAN_MTU ) */
+#include <stdint.h>
 
 
-#include "ROS_Layer/can_dispatcher.h"
 
 uint32_t arb_id=0;
-void process_one(struct can_frame *frm);
+//void process_one(struct can_frame *frm);
 
-static void _event_cb(can_t *dev, can_event_t event, uint8_t *message, uint16_t lenght)
+/*static*/ void can_dispatcher::_event_cb(can_t *dev, can_event_t event, uint8_t *message , uint16_t lenght)
 {
 
  printf("receive event from can%i\n", *dev);
@@ -164,13 +175,13 @@ static void _event_cb(can_t *dev, can_event_t event, uint8_t *message, uint16_t 
  {
 	case CAN_EVENT_RX_COMPLETE:
 		if ( (frameptr->can_id & 0x1FFFFFFF) == arb_id)
-			process_one((can_frame *)message);
+			process_one(/*(struct can_frame *)message*/frameptr);
 		break;
  }
 }
 
 
-void process_one(struct can_frame *frm)
+void can_dispatcher::process_one(struct can_frame *frm)
 {
     
     #if defined(DEBUG_RECEIVE)
@@ -194,19 +205,24 @@ void process_one(struct can_frame *frm)
     #endif
 }
 
-void init_can_dispatcher(void)
+/*can_dispatcher::can_dispatcher(can_event_cb_t event_callback) 
 {
+
+}*/
+can_dispatcher::can_dispatcher(void) //: can_dispatcher(&_event_cb)
+{
+
 //creation du driver can
-    #if 0
-	m_can_driver = new can_driver(&_event_cb);
-	m_can_driver->init(false);
-    #endif
+    
+    m_can_driver = new can_driver(&_event_cb);
+    m_can_driver->init(false);
+    
     //creation du registre can        
     registerMessage = new register_can();
     //registerMessage->init();
 }
 
-void run (void)
+void can_dispatcher::run (void)
 {
 	m_can_driver->run();
 }

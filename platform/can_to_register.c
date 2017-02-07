@@ -22,7 +22,7 @@ can_to_regiser-<
 	#include <curses.h>
 #endif
 
-
+can_dispatcher *myCAN_To_ROS_interfface;
 
 
 int main(int argc, char **argv)
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		printf("Syntax: %s <Arbitration ID>\n", argv[0]);
 		exit(1);
 	}*/
-    init_can_dispatcher();
+    myCAN_To_ROS_interfface = new can_dispatcher();
 	
     while(1)//TODO le reste du code.
     {

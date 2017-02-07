@@ -92,6 +92,12 @@ class can_driver : public canInterface {
     * @param[in]  event_callback  On lui donne le pointeur de gestion des interuptions
     */
     can_driver(can_event_cb_t event_callback);
+
+   /**
+    * @breif Constructeur
+    * @param[in]  event_callback  On lui donne le pointeur de gestion des interuptions
+    */
+    //can_driver(void* event_callback);
   
    /**
     * @breif Destructeur
