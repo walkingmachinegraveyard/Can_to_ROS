@@ -1,12 +1,32 @@
 #ifndef H_NATIVE_CAN
 #define H_NATIVE_CAN
 
+/**
+ * @file native_can.h
+ * @brief Low level CAN driver provenant de socket-can
+ * @author Alexandre Salconi-Denis
+ * @date 25 september 2017
+ * @version 0.2
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+  
+/**
+ * @def CAN_0_EN
+ */
 #define CAN_0_EN 1
+  
+/**
+* @def CAN_NUMOF
+*/
 #define CAN_NUMOF 1
+
+/**
+ * @def CAN_INTERFACE_NAME
+ * @breif Defini le nom du socket-can en string
+ */
 #define CAN_INTERFACE_NAME "can0"
 
 #include "CAN/lowLevel_CAN_definition.h"
@@ -22,6 +42,10 @@ extern "C" {
 
 //typedef can::mode_t mode_t
 
+  /**
+   * @class can_driver
+   * @breif Class low-level semi-generale, controlant le CAN provenant de socket-can
+   */
 class can_driver : public canInterface {
   private:
     #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
@@ -63,10 +87,28 @@ class can_driver : public canInterface {
     virtual int can_release(can_t dev){return 0;};
 
   public:
+   /**
+    * @breif Constructeur
+    * @param[in]  event_callback  On lui donne le pointeur de gestion des interuptions
+    */
     can_driver(can_event_cb_t event_callback);
+
+   /**
+    * @breif Constructeur
+    * @param[in]  event_callback  On lui donne le pointeur de gestion des interuptions
+    */
+    //can_driver(void* event_callback);
+  
+   /**
+    * @breif Destructeur
+    */
     ~can_driver();
 
+   /**
+    * @breif A executer en boucle, afin de faire fonctioner le driver
+    */
     virtual void run(void);
+  
     /**
      * @brief Initialise le CAN
      * @param[in] recv_own_msgs Bool permetant de decider si l'on veux un feedback

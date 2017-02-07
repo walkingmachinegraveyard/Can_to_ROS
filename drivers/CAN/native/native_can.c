@@ -47,7 +47,21 @@ can_driver::can_driver(can_event_cb_t event_callback) : canInterface(event_callb
     frame_cnt[i]=0;
 
   }
-}
+}/*
+can_driver::can_driver(void* event_callback) : canInterface((can_event_cb_t) event_callback)
+{
+  for(uint8_t i= 0; i!=CAN_NUMOF; i++)
+  {
+    m_socket[i]=0;
+    #if defined( ERROR_SALCO_01_PAS_SUR_UTILITER )
+    m_current_mode[i]=mode_t::receive;
+    #endif
+    frame_cnt[i]=0;
+
+  }
+}*/
+
+
 
 uint8_t  can_driver::init(bool recv_own_msgs, can_t canID)
 {

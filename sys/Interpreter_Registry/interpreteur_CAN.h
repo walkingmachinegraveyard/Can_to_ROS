@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 
-
+#define CAN_MAX_MESSAGE_LEN 10
 
 struct can_message_t
  {
@@ -18,7 +18,7 @@ struct can_message_t
   uint8_t 	service_Code;/* Service code, see CAN WM specification. */ //TODO: a definire
   uint8_t 	message_Code;/* Message code, see CAN WM specification. */ //TODO: a definire
   uint8_t 	lenght;/* the lenght of the data */ //can_dlc-(uint8_t*3)
-  uint8_t* 	data;/* the message gived *///TODO: a definire
+  uint8_t 	data[CAN_MAX_MESSAGE_LEN] __attribute__((aligned(8)));/* the message gived *///TODO: a definire
 };
 
 

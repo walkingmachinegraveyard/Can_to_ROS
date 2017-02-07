@@ -30,8 +30,11 @@ private:
     uint8_t m_max_messages;
     void set_max_client(uint8_t number);
     void set_max_messages(uint8_t number);
-    can_data_t * get_client(uint32_t nodeId);
-    can_message_t * get_message(uint32_t nodeId, uint8_t messageid);
+    
+    
+protected:
+	can_data_t * get_client(uint32_t nodeId);
+	can_message_t * get_message(uint32_t nodeId, uint8_t messageid);
 public:
 	register_can();
     void init();
@@ -54,7 +57,7 @@ public:
     void clean_message(uint32_t nodeId);
 
 	//TODO:resend (en parametre le client et le numero du message a envoyer)
-    bool resend(uint32_t nodeId);
+    //bool resend(uint32_t nodeId);
     //TODO:update (qui va permetre dajouter un message et ensuite dutiliser la funct. resend)
     bool update (uint32_t nodeId, struct can_message_t message);
 
